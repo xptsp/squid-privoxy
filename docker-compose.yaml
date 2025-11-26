@@ -1,0 +1,16 @@
+services:
+  squid-privoxy:
+    image: xptsp/squid-privoxy:latest
+    container_name: squid-privoxy
+    ports:
+      - 3128:3128     # Squid HTTP proxy server
+      - 3129:3129     # Squid Transparent HTTP server 
+      - 8118:8118     # Privoxy server
+    environment:
+      - UPDATE_BLOCKLIST=weekly  # Comment out to not use Privoxy-Blocklist script
+    volumes:
+      - ./cache:/var/cache/squid
+      #- ./privoxy-blocklist.cfg:/etc/privoxy-blocklist.cfg
+      #- ./privoxy:/opt/privoxy
+      #- ./squid:/opt/squid
+    restart: always

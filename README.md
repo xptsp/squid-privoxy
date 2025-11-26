@@ -8,27 +8,43 @@ One proxy or 2 proxies cascaded ?
 - A filtering proxy will speed up your Internet browser, because you will no longer require to add an blockAds extention in any of the browsers of your devices and computers.
 - A cache proxy will speed up your Internet surfing by caching all latest used objects and load only what is necessary.
 
-You can run a proxy on a NAS.
-You can run a proxy on a Raspberry Pi (in this case, don't hesitate to drop me an Email, I'll make a special build.
+# Squid settings
 
-## Squid settings
-
-You can change squid settings by mount a custom.conf into /opt/squid/custom.conf:
-
-docker run -d -v -p 3128:3128 -p 3129:3129 synopsis8/squid-privoxy
+Docker compose file for this container:
 ```
-If you want to use one external cache location 
-docker run -d -v %PATHTOCACHEDIR%:/var/cache/squid -p 3128:3128 -p 3129:3129 synopsis8/squid-privoxy
-** Per default, the cache directory is owned by the squid user inside the container, If you plan to use a cache directory outside the container, make sure your PATH to cache directory is well writable for the container.
+services:
+  squid-privoxy:
+    image: xptsp/squid-privoxy:latest
+    container_name: squid-privoxy
+    ports:
+      - 3128:3128     # Squid HTTP proxy server
+      - 3129:3129     # Squid Transparent HTTP server 
+      - 8118:8118     # Privoxy server
+    environment:
+      - UPDATE_BLOCKLIST=weekly  # Uncomment and change to add privoxy-blocklist to crond  
+    volumes:
+      - ./cache:/var/cache/squid
+      #- ./privoxy-blocklist.cfg:/etc/privoxy-blocklist.cfg
+      #- ./privoxy:/opt/privoxy
+      #- ./squid:/opt/squid
+    restart: always
+```
+If Squid and Privoxy settings directories are mounted, any missing Squid and/or Privoxy files are copied into their respective directories.
+Existing configurations will **NOT** be overridden unless they are older than the default files in this container.
 
-If you want to access your privoxy and squid configuration files from outside the container.
-docker run -d -v %PATHTOCACHEDIR%:/var/cache/squid -v $HOME/privoxy.conf:/opt/privoxy/config -v $HOME/squid.conf:/opt/squid/squid.conf -p 3128:3128 -p 3129:3129 synopsis8/squid-privoxy
-
+# Built-in URL Rewriter
 The image has an URL rewrite script to be able to modify request URLs. You can configure it by mounting a file into /opt/squid/rewriter.conf like this:
-```
-# URL rewriter: change in the server, not in the browser
-SED="$SED;s|^http://\(.*google\)\.hu|\1.com|g"
 
-# URL redirect in the browser with HTTP status code 302
+### URL rewriter: change in the server, not in the browser
+```
+SED="$SED;s|^http://\(.*google\)\.hu|\1.com|g"
+```
+
+### URL redirect in the browser with HTTP status code 302
+```
 SED="$SED;s|^http://\(.*google\)\.com|302:\1.hu|g"
 ```
+
+# GitHub Repository
+
+The GitHub Repository for this docker container is [here](https://github.com/xptsp/squid-privoxy).
