@@ -1,14 +1,17 @@
 # squid-privoxy
 
-A docker image with Squid and Privoxy based on Alpine Linux. Now it has Squid as well for caching and modifying requests.
+A docker image with Squid and Privoxy based on Alpine Linux. Now it has Squid as well for caching and modifying
+requests.
 
-As soon as you have several devices connected to your network and accessing Internet (TV, computers, tablets and smartphones), you're better off running a proxy to access the Internet.
-One proxy or 2 proxies cascaded ?
+As soon as you have several devices connected to your network and accessing Internet (TV, computers, tablets and
+smartphones), you're better off running a proxy to access the Internet.  One proxy or 2 proxies cascaded?
 - A filtering proxy will protect you from unwanted ads
-- A filtering proxy will speed up your Internet browser, because you will no longer require to add an blockAds extention in any of the browsers of your devices and computers.
-- A cache proxy will speed up your Internet surfing by caching all latest used objects and load only what is necessary.
+- A filtering proxy will speed up your Internet browser, because you will no longer require to add an blockAds
+extention in any of the browsers of your devices and computers.
+- A cache proxy will speed up your Internet surfing by caching all latest used objects and load only what is
+necessary.
 
-# Squid settings
+# Launching Container: 
 
 Docker compose file for this container:
 ```
@@ -18,33 +21,41 @@ services:
     container_name: squid-privoxy
     ports:
       - 3128:3128     # Squid HTTP proxy server
-      - 3129:3129     # Squid Transparent HTTP server 
+      - 3129:3129     # Squid Transparent HTTP server
+      - 3130:3130     # Squid Transparent HTTPS server
       - 8118:8118     # Privoxy server
     environment:
-      - UPDATE_BLOCKLIST=weekly  # Uncomment and change to add privoxy-blocklist to crond  
+      # Uncomment next line to add privoxy-blocklist to crond (15min, daily, hourly, weekly, monthly)
+      #- UPDATE_BLOCKLIST=weekly
     volumes:
       - ./cache:/var/cache/squid
-      #- ./privoxy-blocklist.cfg:/etc/privoxy-blocklist.cfg
       #- ./privoxy:/opt/privoxy
       #- ./squid:/opt/squid
     restart: always
 ```
-If Squid and Privoxy settings directories are mounted, any missing Squid and/or Privoxy files are copied into their respective directories.
-Existing configurations will **NOT** be overridden unless they are older than the default files in this container.
+If Squid and Privoxy settings directories are mounted, any missing Squid and/or Privoxy files are copied into 
+their respective directories.  Existing configurations will **NOT** be overridden unless they are older than 
+the default files in this container.
 
-# Built-in URL Rewriter
-The image has an URL rewrite script to be able to modify request URLs. You can configure it by mounting a file into /opt/squid/rewriter.conf like this:
+The [privoxy-blocklist.conf](https://github.com/xptsp/squid-privoxy/blob/master/service/privoxy-blocklist.conf) 
+file can be found at **/etc/privoxy/privoxy-blocklist.conf**.  When environment variable UPDATE_BLOCKLIST is set,
+the script is run at container launch, as well as added to the crond tasks at the specified cron period
+(15min, daily, hourly, weekly, or monthly).
 
-### URL rewriter: change in the server, not in the browser
+# Divert traffic to the transparent proxy with iptables
+
+From other computers, we use the PREROUTING chain, specifying the source with -s:
 ```
-SED="$SED;s|^http://\(.*google\)\.hu|\1.com|g"
+iptables -t nat -A PREROUTING -s 192.168.0.0/2 -p tcp --dport 80 -j REDIRECT --to-port 3129
+iptables -t nat -A PREROUTING -s 192.168.0.0/2 -p tcp --dport 443 -j REDIRECT --to-port 3130
 ```
 
-### URL redirect in the browser with HTTP status code 302
-```
-SED="$SED;s|^http://\(.*google\)\.com|302:\1.hu|g"
-```
+# History:
 
-# GitHub Repository
+[xptsp/squid-privoxy](https://github.com/xptsp/squid-privoxy) repository was forked from
+[synopsis8/squid-privoxy](https://github.com/synopsis8/squid-privoxy).
 
-The GitHub Repository for this docker container is [here](https://github.com/xptsp/squid-privoxy).
+- **v0.1**: Several glaring issues were fixed, as the modified Squid and Privoxy weren't being placed in their
+respective directories.  Empty mounted configuration folders now have default Squid and Privoxy configurations
+copied into them.  Added [privoxy-blocklist](https://github.com/Andrwe/privoxy-blocklist/) to the repo.
+- **v0.2**: Added support for HTTPS transparent proxying, and removes non-functional URL rewriter script.

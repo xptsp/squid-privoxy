@@ -1,5 +1,14 @@
 #!/bin/sh
 
+# Generate SSL key, putting private key and self-signed certificate in same file, THEN
+# generate a SSL key to be added to browsers:
+if [[ ! -f /etc/squid/cert/myCA.pem || ! -f /etc/squid/cert/myCA.der ]]; then
+	mkdir -p /etc/squid/cert/
+	cd /etc/squid/cert/
+	openssl req -new -newkey rsa:4096 -sha256 -days 3650 -nodes -x509 -keyout myCA.pem -out myCA.pem -batch
+	openssl x509 -in myCA.pem -outform DER -out myCA.der
+fi
+
 # Remove possible pid
 rm /var/run/squid.pid 2>/dev/null
 

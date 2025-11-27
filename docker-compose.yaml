@@ -4,13 +4,14 @@ services:
     container_name: squid-privoxy
     ports:
       - 3128:3128     # Squid HTTP proxy server
-      - 3129:3129     # Squid Transparent HTTP server 
+      - 3129:3129     # Squid Transparent HTTP server
+      - 3130:3130     # Squid Transparent HTTPS server
       - 8118:8118     # Privoxy server
     environment:
-      - UPDATE_BLOCKLIST=weekly  # Comment out to not use Privoxy-Blocklist script
+      # Uncomment next line to add privoxy-blocklist to crond (15min, daily, hourly, weekly, monthly)
+      #- UPDATE_BLOCKLIST=weekly
     volumes:
       - ./cache:/var/cache/squid
-      #- ./privoxy-blocklist.cfg:/etc/privoxy-blocklist.cfg
       #- ./privoxy:/opt/privoxy
       #- ./squid:/opt/squid
     restart: always
