@@ -24,7 +24,8 @@ services:
       - 3129:3129     # Squid Transparent HTTP server
       - 3130:3130     # Squid Transparent HTTPS server
       - 8118:8118     # Privoxy server
-    environment:
+      - 8080:8080     # Container WebUI
+    #environment:
       # Uncomment next line to add privoxy-blocklist to crond (15min, daily, hourly, weekly, monthly)
       #- UPDATE_BLOCKLIST=weekly
     volumes:
@@ -42,7 +43,7 @@ file can be found at **/etc/privoxy/privoxy-blocklist.conf**.  When environment 
 the script is run at container launch, as well as added to the crond tasks at the specified cron period
 (15min, daily, hourly, weekly, or monthly).
 
-# Divert traffic to the transparent proxy with iptables
+# Divert traffic to the transparent proxy with iptables ([Source](https://dev.to/suntong/a-short-guide-on-squid-transparent-proxy-ssl-bumping-k5c))
 
 From other computers, we use the PREROUTING chain, specifying the source with -s:
 ```
@@ -50,7 +51,17 @@ iptables -t nat -A PREROUTING -s 192.168.0.0/2 -p tcp --dport 80 -j REDIRECT --t
 iptables -t nat -A PREROUTING -s 192.168.0.0/2 -p tcp --dport 443 -j REDIRECT --to-port 3130
 ```
 
-# History:
+On localhost this is a tougher issue since we want to avoid forwarding loops (packet is diverted to Squid but it should be sent to the Internet when Squid done its thing). Fortunately iptables can differentiate between packet owner users. We need to use the OUTPUT chain for locally-generated packets. So we allow packets by root and squid through and divert everything else to Squid.
+```
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 80 -m owner --uid-owner root -j RETURN
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 80 -m owner --uid-owner squid -j RETURN
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 443 -m owner --uid-owner root -j RETURN
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 443 -m owner --uid-owner squid -j RETURN
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
+```
+
+# Project History:
 
 [xptsp/squid-privoxy](https://github.com/xptsp/squid-privoxy) repository was forked from
 [synopsis8/squid-privoxy](https://github.com/synopsis8/squid-privoxy).

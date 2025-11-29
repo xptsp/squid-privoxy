@@ -2,6 +2,6 @@
 docker compose down
 docker image ls | grep xptsp/squid-privoxy | awk '{print $3}' | while read ID; do docker rmi -f ${ID}; done
 docker build --rm -t xptsp/squid-privoxy:latest . || exit
-docker tag xptsp/squid-privoxy:latest xptsp/squid-privoxy:0.2
+docker tag xptsp/squid-privoxy:latest xptsp/squid-privoxy:0.3
 docker compose up -d
 

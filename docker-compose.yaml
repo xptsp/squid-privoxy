@@ -7,7 +7,8 @@ services:
       - 3129:3129     # Squid Transparent HTTP server
       - 3130:3130     # Squid Transparent HTTPS server
       - 8118:8118     # Privoxy server
-    environment:
+      - 8080:8080     # Container WebUI
+    #environment:
       # Uncomment next line to add privoxy-blocklist to crond (15min, daily, hourly, weekly, monthly)
       #- UPDATE_BLOCKLIST=weekly
     volumes:
