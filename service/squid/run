@@ -2,26 +2,19 @@
 
 # Generate SSL key, putting private key and self-signed certificate in same file, THEN
 # generate a SSL key to be added to browsers:
-if [[ ! -f /etc/squid/cert/myCA.pem || ! -f /etc/squid/cert/myCA.der ]]; then
+if [[ ! -f /etc/squid/cert/internal.pem || ! -f /etc/squid/cert/external.der ]]; then
 	mkdir -p /etc/squid/cert/
 	cd /etc/squid/cert/
-	openssl req -new -newkey rsa:4096 -sha256 -days 3650 -nodes -x509 -keyout myCA.pem -out myCA.pem -batch
-	openssl x509 -in myCA.pem -outform DER -out myCA.der
+	openssl req -new -newkey rsa:4096 -sha256 -days 3650 -nodes -x509 -keyout internal.pem -out internal.pem -batch
+	openssl x509 -in internal.pem -outform DER -out external.der
 fi
 
 # Remove possible pid
 rm /var/run/squid.pid 2>/dev/null
 
-# Logging
-tail -F /var/log/squid/cache.log 2>/dev/null &
-tail -F /var/log/squid/access.log 2>/dev/null &
-
 # Create cache directories
 echo "Initializing Squid cache..."
 squid -Nz -f /opt/squid/squid.conf
-
-# Rotate logs ~hourly
-(while true; do sleep 3600; squid -k rotate; done) &
 
 # Start squid in the background
 exec squid -YFCN -f /opt/squid/squid.conf

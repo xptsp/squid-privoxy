@@ -13,6 +13,7 @@ services:
       #- UPDATE_BLOCKLIST=weekly
     volumes:
       - ./cache:/var/cache/squid
-      #- ./privoxy:/opt/privoxy
-      #- ./squid:/opt/squid
+      #- ./logs:/var/log/squid
+      #- ./privoxy:/etc/privoxy
+      #- ./squid:/etc/squid
     restart: always

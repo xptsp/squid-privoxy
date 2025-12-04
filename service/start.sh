@@ -24,8 +24,8 @@ chown -R privoxy:privoxy /etc/privoxy/*
 # if specified periodic cron.d directory specified by environmental variable "USE_BLOCKLIST"
 # exists, then create crond symbolic link to "/usr/bin/privoxy-blocklist" and run script:
 if [[ -d /etc/periodic/${UPDATE_BLOCKLIST:="false"} ]]; then
-  ln -sf /usr/bin/privoxy-blocklist /etc/periodic/${UPDATE_BLOCKLIST:="false"}/
-  privoxy-blocklist
+	ln -sf /usr/bin/privoxy-blocklist /etc/periodic/${UPDATE_BLOCKLIST:="false"}/
+	privoxy-blocklist
 fi 
     
 # Launch all services:

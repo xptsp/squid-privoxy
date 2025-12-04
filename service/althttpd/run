@@ -1,0 +1,2 @@
+#!/bin/sh
+exec althttpd --user nobody --popup --root /www --port 8080
