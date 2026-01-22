@@ -16,5 +16,8 @@ rm /var/run/squid.pid 2>/dev/null
 echo "Initializing Squid cache..."
 squid -Nz -f /opt/squid/squid.conf
 
+# Create "/etc/squid/mime.conf" if missing:
+test -e /etc/squid/mime.conf || touch /etc/squid/mime.conf
+
 # Start squid in the background
-exec squid -YFCN -f /opt/squid/squid.conf
+exec squid -YFCN -f /etc/squid/squid.conf

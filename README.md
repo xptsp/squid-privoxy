@@ -44,29 +44,12 @@ file can be found at **/etc/privoxy/privoxy-blocklist.conf**.  When environment 
 the script is run at container launch, as well as added to the crond tasks at the specified cron period
 (15min, daily, hourly, weekly, or monthly).
 
-# Divert traffic to the transparent proxy with iptables ([Source](https://dev.to/suntong/a-short-guide-on-squid-transparent-proxy-ssl-bumping-k5c))
-
-From other computers, we use the PREROUTING chain, specifying the source with -s:
-```
-iptables -t nat -A PREROUTING -s 192.168.0.0/2 -p tcp --dport 80 -j REDIRECT --to-port 3129
-iptables -t nat -A PREROUTING -s 192.168.0.0/2 -p tcp --dport 443 -j REDIRECT --to-port 3130
-```
-
-On localhost this is a tougher issue since we want to avoid forwarding loops (packet is diverted to Squid but 
-it should be sent to the Internet when Squid done its thing). Fortunately iptables can differentiate between 
-packet owner users. We need to use the OUTPUT chain for locally-generated packets. So we allow packets by root 
-and squid through and divert everything else to Squid.
-```
-iptables -t nat -A OUTPUT -p tcp -m tcp --dport 80 -m owner --uid-owner root -j RETURN
-iptables -t nat -A OUTPUT -p tcp -m tcp --dport 80 -m owner --uid-owner squid -j RETURN
-iptables -t nat -A OUTPUT -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
-iptables -t nat -A OUTPUT -p tcp -m tcp --dport 443 -m owner --uid-owner root -j RETURN
-iptables -t nat -A OUTPUT -p tcp -m tcp --dport 443 -m owner --uid-owner squid -j RETURN
-iptables -t nat -A OUTPUT -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
-```
-
 # Project History:
 
+### **v0.4** - [Release](https://github.com/xptsp/squid-privoxy/releases/tag/0.4)
+- Fixed AltHTTPd service so that SARG results are in root directory of web server.
+- Fixed issue where missing configuration files stopped Squid from starting.
+- Fixed issue where wrong location of Squid configuration files is used during startup.
 ### **v0.3** - [Release](https://github.com/xptsp/squid-privoxy/releases/tag/0.3)
 - Added [althttpd](https://sqlite.org/althttpd/doc/trunk/althttpd.md) for HTTP service on port 8080 
 - Added [SARG v2.4.0](https://sourceforge.net/projects/sarg/)  for Squid usage reports.

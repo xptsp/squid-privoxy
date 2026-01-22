@@ -11,8 +11,8 @@ services:
     #environment:
       # Uncomment next line to add privoxy-blocklist to crond (15min, daily, hourly, weekly, monthly)
       #- UPDATE_BLOCKLIST=weekly
-    volumes:
-      - ./cache:/var/cache/squid
+    #volumes:
+      #- ./cache:/var/cache/squid
       #- ./logs:/var/log/squid
       #- ./privoxy:/etc/privoxy
       #- ./squid:/etc/squid
